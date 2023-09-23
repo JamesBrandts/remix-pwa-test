@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
-import { Push } from "@remix-pwa/push";
-import { PushPlugin } from "@remix-pwa/push";
+// import { Push } from "@remix-pwa/push";
+// import { type PushPlugin } from "@remix-pwa/push";
 import { Storage } from '@remix-pwa/cache';
 import { cacheFirst, networkFirst } from '@remix-pwa/strategy';
 import type { DefaultFetchHandler } from '@remix-pwa/sw';
@@ -66,6 +66,29 @@ self.addEventListener('message', event => {
   event.waitUntil(handler.handle(event));
 });
 
+class Push {
+  plugins;
+  constructor(plugins = []) {
+      Object.defineProperty(this, "plugins", {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: void 0
+      });
+      this.plugins = plugins;
+  }
+  applyPlugins(pluginMethod, args) {
+      return __awaiter(this, void 0, void 0, function* () {
+          const promises = this.plugins.map((plugin) => __awaiter(this, void 0, void 0, function* () {
+              if (plugin[pluginMethod]) {
+                  yield plugin[pluginMethod](args);
+              }
+          }));
+          yield Promise.all(promises);
+      });
+  }
+}
+
 class CustomPush extends Push {
   async handlePush(event: PushEvent): Promise<void> {
     const { data } = event;
@@ -92,7 +115,6 @@ class CustomPush extends Push {
   }
 }
 
-const pushHandler = new CustomPush();
 
 self.addEventListener("push", (event: PushEvent) => {
   pushHandler.handlePush(event);
@@ -171,28 +193,19 @@ const analyticsPlugin = new AnalyticsPlugin();
 
 const pushHandler = new CustomPush([analyticsPlugin]);
 
-class CustomPush extends Push {
-  async handlePush(event: PushEvent): Promise<void> {
-    this.applyPlugins("pushReceived", { event });
 
-    // ...
-  }
 
-  async handleNotificationClick(event: NotificationEvent): Promise<void> {
-    this.applyPlugins("pushClicked", { event });
 
-    // ...
-  }
 
-  async handleNotificationClose(event: NotificationEvent): Promise<void> {
-    this.applyPlugins("pushDismissed", { event });
 
-    // ...
-  }
+export interface PushHandlerEnv {
+  event: PushEvent | NotificationEvent | ErrorEvent;
+  state?: Record<string, any>;
+}
 
-  async handleError(error: ErrorEvent): Promise<void> {
-    this.applyPlugins("error", { event: error });
-
-    // ...
-  }
+export interface PushPlugin {
+  pushReceived?(event: PushHandlerEnv): Promise<void>;
+  pushClicked?(event: PushHandlerEnv): Promise<void>;
+  pushDismissed?(event: PushHandlerEnv): Promise<void>;
+  error?(error: PushHandlerEnv): Promise<void>;
 }

@@ -704,14 +704,108 @@ var handler = new RemixNavigationHandler({
 self.addEventListener("message", (event) => {
   event.waitUntil(handler.handle(event));
 });
+var Push = class {
+  plugins;
+  constructor(plugins = []) {
+    Object.defineProperty(this, "plugins", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    this.plugins = plugins;
+  }
+  applyPlugins(pluginMethod, args) {
+    return __awaiter(this, void 0, void 0, function* () {
+      const promises = this.plugins.map((plugin) => __awaiter(this, void 0, void 0, function* () {
+        if (plugin[pluginMethod]) {
+          yield plugin[pluginMethod](args);
+        }
+      }));
+      yield Promise.all(promises);
+    });
+  }
+};
+var CustomPush = class extends Push {
+  async handlePush(event) {
+    const { data } = event;
+    await self.registration.showNotification(data?.json().title, data?.json().options);
+  }
+  async handleNotificationClick(event) {
+    const { notification } = event;
+    console.log(notification);
+    if (notification?.data?.url) {
+      console.timeLog("Opening window");
+      await self.clients.openWindow(notification.data.url);
+    }
+    notification?.close();
+  }
+  async handleNotificationClose(event) {
+    const { notification } = event;
+    console.log("Notification with title", `'${notification.title}'`, "closed");
+  }
+  async handleError(error) {
+    console.error("An error occurred", error);
+  }
+};
 self.addEventListener("push", (event) => {
+  pushHandler.handlePush(event);
 });
 self.addEventListener("notificationclick", (event) => {
+  pushHandler.handleNotificationClick(event);
 });
 self.addEventListener("notificationclose", (event) => {
+  pushHandler.handleNotificationClose(event);
 });
 self.addEventListener("error", (error) => {
+  pushHandler.handleError(error);
 });
+var AnalyticsPlugin = class {
+  options;
+  pushReceivedCount = 0;
+  pushClickedCount = 0;
+  pushDismissedCount = 0;
+  errorCount = 0;
+  constructor(options = {}) {
+    this.options = {
+      trackPushReceived: options.trackPushReceived ?? true,
+      trackPushClicked: options.trackPushClicked ?? true,
+      trackPushDismissed: options.trackPushDismissed ?? true,
+      trackPushError: options.trackPushError ?? true,
+      ...options
+    };
+  }
+  async pushReceived({ event, state }) {
+    if (!this.options.trackPushReceived)
+      return;
+    this.pushReceivedCount++;
+    console.log("Push recieved", event);
+    console.log(`%cPush received ${this.pushReceivedCount}`, "color: green");
+  }
+  async pushClicked({ event, state }) {
+    if (!this.options.trackPushClicked)
+      return;
+    this.pushClickedCount++;
+    console.log("Push clicked", event);
+    console.log(`%cPush clicked ${this.pushClickedCount}`, "color: blue");
+  }
+  async pushDismissed({ event, state }) {
+    if (!this.options.trackPushDismissed)
+      return;
+    this.pushDismissedCount++;
+    console.log("Push dismissed", event);
+    console.log(`%cPush dismissed ${this.pushDismissedCount}`, "color: yellow");
+  }
+  async error({ event, state }) {
+    if (!this.options.trackPushError)
+      return;
+    this.errorCount++;
+    console.log("Error", event);
+    console.log(`%cError ${this.errorCount}`, "color: red");
+  }
+};
+var analyticsPlugin = new AnalyticsPlugin();
+var pushHandler = new CustomPush([analyticsPlugin]);
 export {
   defaultFetchHandler
 };

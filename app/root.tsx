@@ -1,5 +1,6 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
+import { useSWEffect } from '@remix-pwa/sw'
 import {
   Links,
   LiveReload,
@@ -13,7 +14,10 @@ export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
 
+
+
 export default function App() {
+  useSWEffect()
   return (
     <html lang="en">
       <head>

@@ -64,3 +64,11 @@ const handler = new RemixNavigationHandler({
 self.addEventListener('message', event => {
   event.waitUntil(handler.handle(event));
 });
+
+self.addEventListener("push", (event) => {});
+
+self.addEventListener("notificationclick", (event) => {});
+
+self.addEventListener("notificationclose", (event) => {});
+
+self.addEventListener("error", (error) => {});

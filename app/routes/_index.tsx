@@ -1,5 +1,17 @@
-import { subscribeToPush } from "@remix-pwa/push";
 import { useState } from "react";
+// import { subscribeToPush } from "@remix-pwa/push";
+
+export function subscribeToPush(PUBLIC_KEY: string, pushRoute = '/push', type = 'subscribe', payload = {}) {
+  return __awaiter(this, void 0, void 0, function* () {
+      const registration = yield navigator.serviceWorker.getRegistration();
+      const subscription = yield (registration === null || registration === void 0 ? void 0 : registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlB64ToUint8Array(PUBLIC_KEY)
+      }));
+      const data = yield postToServer(pushRoute, { subscription, type, payload });
+      return data;
+  });
+}
 
 export default function PushRoute() {
   const [subscribed, setSubscribed] = useState(false);

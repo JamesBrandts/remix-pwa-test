@@ -1,6 +1,32 @@
 import { useState } from "react";
 // import { subscribeToPush } from "@remix-pwa/push";
 
+export function postToServer(url, data) {
+  return __awaiter(this, void 0, void 0, function* () {
+      let response = yield fetch(url, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+      });
+      return response;
+  });
+}
+
+export const urlB64ToUint8Array = (base64String) => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
 export function subscribeToPush(PUBLIC_KEY: string, pushRoute = '/push', type = 'subscribe', payload = {}) {
   return __awaiter(this, void 0, void 0, function* () {
       const registration = yield navigator.serviceWorker.getRegistration();
@@ -52,3 +78,24 @@ export default function PushRoute() {
     </div>
   );
 }
+
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+  return new (P || (P = Promise))(function (resolve, reject) {
+      function fulfilled(value) { try {
+          step(generator.next(value));
+      }
+      catch (e) {
+          reject(e);
+      } }
+      function rejected(value) { try {
+          step(generator["throw"](value));
+      }
+      catch (e) {
+          reject(e);
+      } }
+      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
+

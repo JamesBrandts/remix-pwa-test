@@ -92,6 +92,7 @@ class Push {
 class CustomPush extends Push {
   async handlePush(event: PushEvent): Promise<void> {
     const { data } = event;
+    console.log("Push received", data);
     await self.registration.showNotification(data?.json().title, data?.json().options);
   }
 
@@ -194,10 +195,6 @@ const analyticsPlugin = new AnalyticsPlugin();
 const pushHandler = new CustomPush([analyticsPlugin]);
 
 
-
-
-
-
 export interface PushHandlerEnv {
   event: PushEvent | NotificationEvent | ErrorEvent;
   state?: Record<string, any>;
@@ -208,4 +205,24 @@ export interface PushPlugin {
   pushClicked?(event: PushHandlerEnv): Promise<void>;
   pushDismissed?(event: PushHandlerEnv): Promise<void>;
   error?(error: PushHandlerEnv): Promise<void>;
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+  return new (P || (P = Promise))(function (resolve, reject) {
+      function fulfilled(value) { try {
+          step(generator.next(value));
+      }
+      catch (e) {
+          reject(e);
+      } }
+      function rejected(value) { try {
+          step(generator["throw"](value));
+      }
+      catch (e) {
+          reject(e);
+      } }
+      function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+      step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
 }

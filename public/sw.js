@@ -729,6 +729,7 @@ var Push = class {
 var CustomPush = class extends Push {
   async handlePush(event) {
     const { data } = event;
+    console.log("Push received", data);
     await self.registration.showNotification(data?.json().title, data?.json().options);
   }
   async handleNotificationClick(event) {
@@ -806,6 +807,33 @@ var AnalyticsPlugin = class {
 };
 var analyticsPlugin = new AnalyticsPlugin();
 var pushHandler = new CustomPush([analyticsPlugin]);
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function(resolve) {
+      resolve(value);
+    });
+  }
+  return new (P || (P = Promise))(function(resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
 export {
   defaultFetchHandler
 };
